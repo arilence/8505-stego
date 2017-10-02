@@ -1,11 +1,6 @@
 from PIL import Image
 import itertools, os, struct, sys
 
-# Lets design the header
-# headerSize        = 2 bytes
-# fileSize          = 8 bytes
-# fileName          = 248 bytes
-# would be nice to have a relative fileName size using the header size
 class Header:
     def __init__(self, fileName, fileSize):
         self.fileName     = fileName
@@ -13,40 +8,70 @@ class Header:
 
     def toBytes(self):
         packQuery = "hQ248s"
-        return struct.pack(packQuery, 
+        something = struct.pack(packQuery, 
                            0,
                            self.fileSize,
-                           self.fileName.encode())
+                           self.fileName.encode('utf-8'))
+        print(something)
+        return something
 
     @staticmethod
     def fromBytes(data):
         packQuery = "hQ248s"
         headerData = struct.unpack(packQuery, data[:2+8+254])
+        print(headerData)
         fileSize   = headerData[1]
-        fileName   = headerData[2].decode().strip("\x00")
+        fileName   = headerData[2].decode('utf-8').strip("\x00")
         return Header(fileName, fileSize)
+
+# get bits from a byte
+def access_bit(data, num):
+    base = int(num/8)
+    shift = num % 8
+    return (data[base] & (1<<shift)) >> shift
+
+# returns a list of bits
+def byteArrayToBitArray(bytess):
+    data = bytearray(bytess)
+    newData = [access_bit(data,i) for i in range(len(data)*8)]
+    return newData
+
+# returns a list of bytes
+def bitArrayToByteArray(bits):
+    bytes = [sum([byte[b] << b for b in range(0,8)])
+                for byte in zip(*(iter(bits),) * 8)
+            ]
+    return bytes
 
 def encodeData(carrierImage, secretFile):
     carrierPixels = list(carrierImage.getdata())
 
-    secretBytes = bytearray(secretFile.read())
-
     secretFileName = os.path.basename(secretFile.name)
     secretFileSize = os.fstat(secretFile.fileno()).st_size
+
     header = Header(secretFileName, secretFileSize)
-    secretBytes = header.toBytes() + secretBytes
 
+    secretBytes = header.toBytes() + bytearray(secretBytes.read())
+    secretBits = byteArrayToBitArray(secretBytes)
+
+    # Super hacky..
+    # Image data comes in a tuple (which is immutable). To modify, I keep 
+    # track of the three values in the tuple and make a new tuple to
+    # override the previous one LOL. This section also causes the most lag.
+    i = 0
     for idx1, pixelList in enumerate(carrierPixels):
-
-        if (idx1 < len(secretBytes)):
-            r = (pixelList[0] & 0xFC) | ((secretBytes[idx1]) & 0x3)
-            g = (pixelList[1] & 0xFC) | ((secretBytes[idx1]>>2) & 0x3)
-            b = (pixelList[2] & 0xFC) | ((secretBytes[idx1]>>4) & 0x3)
-            a = (pixelList[3] & 0xFC) | ((secretBytes[idx1]>>6) & 0x3)
-            pixelList = (r,g,b,a)
-            carrierPixels[idx1] = pixelList
+        tempPixelList = []
+        for idx2, value in enumerate(pixelList):
+            value = value & 0xFE
+            if (i < len(secretBits)):
+                value = value | secretBits[i]
+            i = i + 1
+            tempPixelList.append(value)
+        if (len(tempPixelList) == 4):
+            pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2], tempPixelList[3])
         else:
-            break
+            pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2])
+        carrierPixels[idx1] = pixelList
 
     newImage = Image.new(carrierImage.mode, carrierImage.size)
     newImage.putdata(carrierPixels)
@@ -55,26 +80,18 @@ def encodeData(carrierImage, secretFile):
 
 def decodeData(carrierImage):
     carrierPixels = list(carrierImage.getdata())
+    secretBits = []
 
-    secretBytes = []
+    i = 0
+    for pixelList in carrierPixels:
+        for value in pixelList:
+            secretBits.append(value & 0x1)
+            i = i + 1
 
-    for idx1, pixelList in enumerate(carrierPixels):
-
-        if (idx1 < len(carrierPixels)):
-            r = (pixelList[0] & 0x3)
-            g = ((pixelList[1] & 0x3)<<2)
-            b = ((pixelList[2] & 0x3)<<4)
-            a = ((pixelList[3] & 0x3)<<6)
-            
-            secretBytes += struct.pack("B", r + g + b + a)
-        else:
-            break
-    secretBytes = bytearray(secretBytes)
-
-    header = Header.fromBytes(secretBytes)
-
+    secretBytes = bitArrayToByteArray(secretBits)
+    header = Header.fromBytes(bytearray(secretBytes))
     secretFile = open("./" + header.fileName, 'wb')
-    secretFile.write(secretBytes[264:header.fileSize+264])
+    secretFile.write(bytearray(secretBytes)[264:header.fileSize+264])
 
 if __name__ == "__main__":
     if (len(sys.argv) == 4):
