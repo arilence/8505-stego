@@ -1,4 +1,5 @@
 from PIL import Image
+from dcutils import Encryption
 import itertools, os, struct, sys
 
 class Header:
@@ -12,14 +13,12 @@ class Header:
                            0,
                            self.fileSize,
                            self.fileName.encode('utf-8'))
-        print(something)
         return something
 
     @staticmethod
     def fromBytes(data):
         packQuery = "hQ248s"
         headerData = struct.unpack(packQuery, data[:2+8+254])
-        print(headerData)
         fileSize   = headerData[1]
         fileName   = headerData[2].decode('utf-8').strip("\x00")
         return Header(fileName, fileSize)
@@ -45,13 +44,15 @@ def bitArrayToByteArray(bits):
 
 def encodeData(carrierImage, secretFile):
     carrierPixels = list(carrierImage.getdata())
+    encryption = Encryption()
 
     secretFileName = os.path.basename(secretFile.name)
     secretFileSize = os.fstat(secretFile.fileno()).st_size
 
     header = Header(secretFileName, secretFileSize)
 
-    secretBytes = header.toBytes() + bytearray(secretBytes.read())
+    secretBytes = header.toBytes() + bytearray(secretFile.read())
+    secretBytes = encryption.encryptData(secretBytes)
     secretBits = byteArrayToBitArray(secretBytes)
 
     # Super hacky..
@@ -80,6 +81,7 @@ def encodeData(carrierImage, secretFile):
 
 def decodeData(carrierImage):
     carrierPixels = list(carrierImage.getdata())
+    encryption = Encryption()
     secretBits = []
 
     i = 0
@@ -89,9 +91,10 @@ def decodeData(carrierImage):
             i = i + 1
 
     secretBytes = bitArrayToByteArray(secretBits)
-    header = Header.fromBytes(bytearray(secretBytes))
+    decryptedBytes = encryption.decryptData(bytes(secretBytes))
+    header = Header.fromBytes(decryptedBytes)
     secretFile = open("./" + header.fileName, 'wb')
-    secretFile.write(bytearray(secretBytes)[264:header.fileSize+264])
+    secretFile.write(bytearray(decryptedBytes)[264:header.fileSize+264])
 
 if __name__ == "__main__":
     if (len(sys.argv) == 4):
