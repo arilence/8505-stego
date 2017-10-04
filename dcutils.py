@@ -4,7 +4,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-class Encryption:
+class Encryptor:
     def __init__(self, password=b"password", salt=b"testingasaltingg"):
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -24,4 +24,46 @@ class Encryption:
         token = self.fernet.decrypt(data)
         return token
 
+class Encoder:
+    """
+     * Hides data inside of a list of pixels
+     * @param   carrierData     list of pixels in RGB or RGBA format
+     * @param   hiddenData      bits to hide inside the pixels
+     * @return                  updated list of pixels with hidden data inside
+    """
+    def encode(self, carrierData, hiddenData):
+        # Super hacky..
+        # Image data comes in a tuple (which is immutable). To modify, I keep
+        # track of the three values in the tuple and make a new tuple to
+        # override the previous one LOL. This section also causes the most lag.
+        i = 0
+        for idx1, pixelList in enumerate(carrierData):
+            tempPixelList = []
+            for idx2, value in enumerate(pixelList):
+                value = value & 0xFE
+                if (i < len(hiddenData)):
+                    value = value | hiddenData[i]
+                i = i + 1
+                tempPixelList.append(value)
+            if (len(tempPixelList) == 4):
+                pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2], tempPixelList[3])
+            else:
+                pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2])
+            carrierData[idx1] = pixelList
 
+        return carrierData
+
+    """
+     * Retrieves hidden data from a list of pixels
+     * @param   carrierData     list of pixels in RGB or RGBA format
+     * @return                  list of raw bits from carrier
+    """
+    def decode(self, carrierData):
+        secretBits = []
+        i = 0
+        for pixelList in carrierData:
+            for value in pixelList:
+                secretBits.append(value & 0x1)
+                i = i + 1
+
+        return secretBits
