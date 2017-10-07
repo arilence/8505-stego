@@ -3,6 +3,9 @@ from dcutils import Encryptor, Encoder
 import itertools, os, struct, sys
 
 class Header:
+    fileSizeBytes = 8
+    fileNameBytes = 254
+
     def __init__(self, fileName, fileSize):
         self.fileName     = fileName
         self.fileSize     = fileSize
@@ -18,7 +21,7 @@ class Header:
     @staticmethod
     def fromBytes(data):
         packQuery = "hQ248s"
-        headerData = struct.unpack(packQuery, data[:2+8+254])
+        headerData = struct.unpack(packQuery, data[:2+Header.fileSizeBytes+Header.fileNameBytes])
         fileSize   = headerData[1]
         fileName   = headerData[2].decode('utf-8').strip("\x00")
         return Header(fileName, fileSize)
