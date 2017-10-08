@@ -11,6 +11,7 @@ from ui.mainwindow import Ui_MainWindow
 
 
 class View(QMainWindow, Ui_MainWindow):
+
     def __init__(self, parent=None):
         super(View, self).__init__(parent)
         self.stego = StegoImage()
@@ -21,6 +22,7 @@ class View(QMainWindow, Ui_MainWindow):
         self.encodeFileButton.clicked.connect(self.encodeFileButtonPressed)
         self.encodeButton.clicked.connect(self.encodeButtonPressed)
         self.decodeButton.clicked.connect(self.decodeButtonPressed)
+        self.stego.completeSignal.connect(self.signalReceived)
     def exitButtonPressed(self):
         sys.exit(0)
     def carrierButtonPressed(self):
@@ -30,16 +32,14 @@ class View(QMainWindow, Ui_MainWindow):
         if file:
             self.carrierEdit.setText(file)
             self.showThumbnail(file, self.carrierImage)
-        else:
-            sys.exit(1)
+
     def secretButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         file, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
         if file:
             self.secretEdit.setText(file)
-        else:
-            sys.exit(1)
+
     def encodeFileButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -47,8 +47,6 @@ class View(QMainWindow, Ui_MainWindow):
         if file:
             self.encodedEdit.setText(file)
             self.showThumbnail(file, self.encodedImage)
-        else:
-            sys.exit(1)
 
     def encodeButtonPressed(self):
         carrierFilePath = self.carrierEdit.text()
@@ -61,21 +59,40 @@ class View(QMainWindow, Ui_MainWindow):
             secretSize = os.stat(secretFilePath).st_size
 
             if ((secretSize * 8) + 264 >= carrierSize - 54):
-                sys.exit(1)
+                self.showError("Carrier image is too small, or secret file is too small."
+                + "Ensure that the carrier file is atleast 8 times larger than the secret file + 264 bytes")
             newCarrierImage = self.stego.hideSecret(carrierFilePath, secretFilePath, outDirectory)
             self.encodedEdit.setText(secretFileName)
         else:
-            sys.exit(1)
+            self.showError("Please select a carrier and secret file")
 
     def decodeButtonPressed(self):
         encodedFilePath = self.encodedEdit.text()
         if encodedFilePath:
              self.stego.showSecret(encodedFilePath)
         else:
-            sys.exit(1)
+            self.showError("Please select an encoded file")
 
+    def showDialog(self, message):
+       msg = QMessageBox()
+       msg.setIcon(QMessageBox.Information)
 
+       msg.setText(message)
+       msg.setWindowTitle("Alert")
+       msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
+       msg.exec_()
+
+    def showError(self, errorMessage):
+       msg = QMessageBox()
+       msg.setIcon(QMessageBox.Warning)
+
+       msg.setText("Uh oh, something went wrong...")
+       msg.setWindowTitle("Alert")
+       msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+       msg.setDetailedText(errorMessage)
+
+       msg.exec_()
 
     def showThumbnail(self, file, label):
         thumb = Image.open(file)
@@ -85,48 +102,11 @@ class View(QMainWindow, Ui_MainWindow):
         qim = ImageQt(thumb)
         label.setPixmap(QPixmap.fromImage(qim))
 
+    def signalReceived(self):
+        self.showDialog("decode complete")
 
 
 app = QApplication(sys.argv)
 widget = View()
 widget.show()
 sys.exit(app.exec_())
-
-
-
-
-"""
-if __name__ == "__main__":
-
-
-    if (len(sys.argv) == 4):
-        carrierPath = sys.argv[1]
-        secretPath = sys.argv[2]
-        outputPath = sys.argv[3]
-
-        # Check if carrier file and secret file exist
-        if (not os.path.exists(carrierPath) and not os.path.exists(secretPath)):
-            print("✖ Both files must be valid.")
-            sys.exit(1)
-
-        # Check if hidden file can fit into carrier image
-        carrierSize = os.stat(carrierPath).st_size
-        secretSize = os.stat(secretPath).st_size
-        if ((secretSize * 8) + 264 >= carrierSize - 54):
-            print("✖ Secret file will not fit within the carrier.")
-            sys.exit(1)
-
-        print("Hiding Data...")
-        newCarrierImage = stego.hideSecret(carrierPath, secretPath, outputPath)
-
-    if (len(sys.argv) == 2):
-        encryptedFilePath = sys.argv[1]
-
-        # Check if encrypted file exists
-        if (not os.path.exists(encryptedFilePath)):
-            print("✖ Both files must be valid.")
-            sys.exit(1)
-
-        print("Retrieving Data...")
-        secretFile = stego.showSecret(encryptedFilePath)
-"""

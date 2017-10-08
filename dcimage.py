@@ -1,6 +1,7 @@
 from PIL import Image
 from dcutils import Encryptor, Encoder
 import itertools, os, struct, sys
+from PyQt5.QtCore import QObject,pyqtSignal
 
 class Header:
     fileSizeBytes = 8
@@ -12,7 +13,7 @@ class Header:
 
     def toBytes(self):
         packQuery = "hQ248s"
-        something = struct.pack(packQuery, 
+        something = struct.pack(packQuery,
                            0,
                            self.fileSize,
                            self.fileName.encode('utf-8'))
@@ -26,7 +27,13 @@ class Header:
         fileName   = headerData[2].decode('utf-8').strip("\x00")
         return Header(fileName, fileSize)
 
-class StegoImage:
+class StegoImage(QObject):
+    completeSignal = pyqtSignal()
+    errorSignal = pyqtSignal(str)
+    def __init__(self):
+        super(QObject, self).__init__()
+
+
     """
      * Retrieves a list of bits from a single byte
     """
@@ -100,4 +107,4 @@ class StegoImage:
         header = Header.fromBytes(decryptedBytes)
         secretFile = open("./" + header.fileName, 'wb')
         secretFile.write(bytearray(decryptedBytes)[264:header.fileSize+264])
-
+        self.completeSignal.emit()
