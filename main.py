@@ -23,6 +23,7 @@ class View(QMainWindow, Ui_MainWindow):
         self.encodeButton.clicked.connect(self.encodeButtonPressed)
         self.decodeButton.clicked.connect(self.decodeButtonPressed)
         self.stego.completeSignal.connect(self.signalReceived)
+        self.stego.errorSignal.connect(self.errorSignal)
     def exitButtonPressed(self):
         sys.exit(0)
     def carrierButtonPressed(self):
@@ -61,15 +62,20 @@ class View(QMainWindow, Ui_MainWindow):
             if ((secretSize * 8) + 264 >= carrierSize - 54):
                 self.showError("Carrier image is too small, or secret file is too small."
                 + "Ensure that the carrier file is atleast 8 times larger than the secret file + 264 bytes")
-            newCarrierImage = self.stego.hideSecret(carrierFilePath, secretFilePath, outDirectory)
-            self.encodedEdit.setText(secretFileName)
+            password = self.getPassword()
+            passwordByte= str.encode(password)
+            newCarrierImage = self.stego.hideSecret(carrierFilePath, secretFilePath, outDirectory, passwordByte)
+
         else:
             self.showError("Please select a carrier and secret file")
 
     def decodeButtonPressed(self):
         encodedFilePath = self.encodedEdit.text()
+
         if encodedFilePath:
-             self.stego.showSecret(encodedFilePath)
+            password = self.getPassword()
+            passwordByte= str.encode(password)
+            self.stego.showSecret(encodedFilePath, passwordByte)
         else:
             self.showError("Please select an encoded file")
 
@@ -79,7 +85,7 @@ class View(QMainWindow, Ui_MainWindow):
 
        msg.setText(message)
        msg.setWindowTitle("Alert")
-       msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+       msg.setStandardButtons(QMessageBox.Ok)
 
        msg.exec_()
 
@@ -97,14 +103,20 @@ class View(QMainWindow, Ui_MainWindow):
     def showThumbnail(self, file, label):
         thumb = Image.open(file)
         thumb = thumb.convert("RGBA")
-        size = 200, 200
+        size = 400, 600
         thumb.thumbnail(size, Image.ANTIALIAS)
         qim = ImageQt(thumb)
         label.setPixmap(QPixmap.fromImage(qim))
 
     def signalReceived(self):
-        self.showDialog("decode complete")
+        self.showDialog("Task Complete")
 
+    def errorSignal(self, msg):
+        self.showError(msg)
+    def getPassword(self):
+        text, okPressed = QInputDialog.getText(self, "Get text","Enter Password:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            return text
 
 app = QApplication(sys.argv)
 widget = View()

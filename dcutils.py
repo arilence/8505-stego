@@ -13,7 +13,7 @@ class Encryptor:
             iterations=100000,
             backend=default_backend()
             )
-        key = base64.urlsafe_b64encode(kdf.derive(password)) 
+        key = base64.urlsafe_b64encode(kdf.derive(password))
         self.fernet = Fernet(key)
 
     def encryptData(self, data):
@@ -21,7 +21,11 @@ class Encryptor:
         return token
 
     def decryptData(self, data):
-        token = self.fernet.decrypt(data)
+        try:
+            token = self.fernet.decrypt(data)
+        except:
+            print("error")
+            
         return token
 
 class Encoder:

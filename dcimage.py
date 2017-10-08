@@ -67,11 +67,15 @@ class StegoImage(QObject):
      * @param   secretFilePath      location to secret file on disk
      * @param   outputFilePath      location where the new output file will be saved
     """
-    def hideSecret(self, carrierImagePath, secretFilePath, outputFilePath):
+    def hideSecret(self, carrierImagePath, secretFilePath, outputFilePath, password):
         carrierImage = Image.open(carrierImagePath)
         secretFile = open(secretFilePath, 'rb')
 
-        encryptor = Encryptor()
+        if password:
+            encryptor = Encryptor(password)
+        else:
+            encryptor = Encryptor()
+
         encoder = Encoder()
 
         carrierPixels = list(carrierImage.getdata())
@@ -87,6 +91,7 @@ class StegoImage(QObject):
         newImage = Image.new(carrierImage.mode, carrierImage.size)
         newImage.putdata(carrierPixels)
         newImage.save(outputFilePath)
+        self.completeSignal.emit()
 
     """
      * Uses an image to retrieve encrypted secret data within it.
@@ -94,17 +99,24 @@ class StegoImage(QObject):
      * saved to disk as the stored name within the same directory.
      * @param   carrierImagePath    location to carrier image on disk
     """
-    def showSecret(self, carrierImagePath):
+    def showSecret(self, carrierImagePath, password):
         carrierImage = Image.open(carrierImagePath)
-        encryptor = Encryptor()
+        if password:
+            encryptor = Encryptor(password)
+        else:
+            encryptor = Encryptor()
         encoder = Encoder()
 
         carrierPixels = list(carrierImage.getdata())
 
         secretBits = encoder.decode(carrierPixels)
         secretBytes = self.bitArrayToByteArray(secretBits)
-        decryptedBytes = encryptor.decryptData(bytes(secretBytes))
-        header = Header.fromBytes(decryptedBytes)
-        secretFile = open("./" + header.fileName, 'wb')
-        secretFile.write(bytearray(decryptedBytes)[264:header.fileSize+264])
-        self.completeSignal.emit()
+        try:
+            decryptedBytes = encryptor.decryptData(bytes(secretBytes))
+        except:
+            self.errorSignal.emit("File is not encoded")
+        else:
+            header = Header.fromBytes(decryptedBytes)
+            secretFile = open("./" + header.fileName, 'wb')
+            secretFile.write(bytearray(decryptedBytes)[264:header.fileSize+264])
+            self.completeSignal.emit()
