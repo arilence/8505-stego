@@ -53,7 +53,8 @@ class View(QMainWindow, Ui_MainWindow):
         carrierFilePath = self.carrierEdit.text()
         secretFilePath = self.secretEdit.text()
         secretFileName = os.path.basename(secretFilePath)
-        outDirectory = os.getcwd() + '/out/' + secretFileName
+        carrierFileName = os.path.basename(carrierFilePath)
+        outDirectory = os.getcwd() + '/out/' + carrierFileName
         if carrierFilePath and secretFilePath:
             # Check if hidden file can fit into carrier image
             carrierSize = os.stat(carrierFilePath).st_size
@@ -62,6 +63,14 @@ class View(QMainWindow, Ui_MainWindow):
             if ((secretSize * 8) + 264 >= carrierSize - 54):
                 self.showError("Carrier image is too small, or secret file is too small."
                 + "Ensure that the carrier file is atleast 8 times larger than the secret file + 264 bytes")
+                return
+            print(secretFileName)
+            print(carrierFileName)
+
+            if not ((secretFileName.endswith('.bmp') or secretFileName.endswith('.png')) and (carrierFileName.endswith('.bmp') or carrierFileName.endswith('png'))):
+                self.showError("unsupported file type")
+                return
+
             password = self.getPassword()
             passwordByte= str.encode(password)
             newCarrierImage = self.stego.hideSecret(carrierFilePath, secretFilePath, outDirectory, passwordByte)
@@ -71,7 +80,10 @@ class View(QMainWindow, Ui_MainWindow):
 
     def decodeButtonPressed(self):
         encodedFilePath = self.encodedEdit.text()
-
+        encodedFileName = os.path.basename(encodedFilePath)
+        if not (encodedFileName.endswith('.bmp') or encodedFileName.endswith('.png')):
+            self.showError("unsupported file type")
+            return
         if encodedFilePath:
             password = self.getPassword()
             passwordByte= str.encode(password)
