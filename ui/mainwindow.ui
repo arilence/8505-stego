@@ -15,23 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Carrier File:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1" colspan="2">
-     <widget class="QLineEdit" name="carrierEdit"/>
-    </item>
-    <item row="0" column="3" colspan="2">
-     <widget class="QPushButton" name="carrierButton">
-      <property name="text">
-       <string>Select Carrier</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_2">
       <property name="text">
@@ -39,82 +22,120 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1" colspan="2">
+    <item row="1" column="1">
      <widget class="QLineEdit" name="secretEdit"/>
     </item>
-    <item row="1" column="3" colspan="2">
-     <widget class="QPushButton" name="secretButton">
-      <property name="text">
-       <string>Select Secret</string>
-      </property>
-     </widget>
+    <item row="4" column="0" colspan="6">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Carrier File</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="carrierImage">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Output File</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="encodedImage">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </item>
-    <item row="2" column="0" colspan="2">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Carrier File</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>Secret File</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="4">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Output File</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="2">
-     <widget class="QLabel" name="carrierImage">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="4" colspan="2">
-     <widget class="QGraphicsView" name="graphicsView_3"/>
-    </item>
-    <item row="4" column="0" colspan="2">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>Console Output:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0" colspan="3">
-     <widget class="QTextBrowser" name="textBrowser"/>
-    </item>
-    <item row="5" column="4">
+    <item row="5" column="3">
      <widget class="QPushButton" name="encodeButton">
       <property name="text">
        <string>Encode Image</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="5">
-     <widget class="QPushButton" name="decodeButton">
+    <item row="1" column="2">
+     <widget class="QPushButton" name="secretButton">
       <property name="text">
-       <string>Decode</string>
+       <string>Select Secret</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="6">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Encoded File</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="carrierEdit"/>
+    </item>
+    <item row="5" column="5">
      <widget class="QPushButton" name="exitButton">
       <property name="text">
        <string>Exit</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="2" colspan="2">
-     <widget class="QLabel" name="secretImage">
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="encodedEdit"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string/>
+       <string>Carrier File:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="carrierButton">
+      <property name="text">
+       <string>Select Carrier</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="4">
+     <widget class="QPushButton" name="decodeButton">
+      <property name="text">
+       <string>Decode</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QPushButton" name="encodeFileButton">
+      <property name="text">
+       <string>Select Encoded</string>
       </property>
      </widget>
     </item>
