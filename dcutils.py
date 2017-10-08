@@ -18,7 +18,7 @@
 --      NOTES:
 --      This file uses APIs for steganography and encryption
 ---------------------------------------------------------------------------------------"""
-import base64, os
+import base64, os, collections
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -66,16 +66,21 @@ class Encoder:
         i = 0
         for idx1, pixelList in enumerate(carrierData):
             tempPixelList = []
-            for idx2, value in enumerate(pixelList):
-                value = value & 0xFE
+            if not isinstance(pixelList, collections.Iterable):
                 if (i < len(hiddenData)):
-                    value = value | hiddenData[i]
+                    pixelList = pixelList | hiddenData[i]
                 i = i + 1
-                tempPixelList.append(value)
-            if (len(tempPixelList) == 4):
-                pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2], tempPixelList[3])
             else:
-                pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2])
+                for idx2, value in enumerate(pixelList):
+                    value = value & 0xFE
+                    if (i < len(hiddenData)):
+                        value = value | hiddenData[i]
+                    i = i + 1
+                    tempPixelList.append(value)
+                if (len(tempPixelList) == 4):
+                    pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2], tempPixelList[3])
+                else:
+                    pixelList = (tempPixelList[0], tempPixelList[1], tempPixelList[2])
             carrierData[idx1] = pixelList
 
         return carrierData
