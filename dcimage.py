@@ -1,16 +1,44 @@
+"""---------------------------------------------------------------------------------------
+--      SOURCE FILE:        dcimage.py - image manipulation for steganograph
+--
+--      PROGRAM:            steganography encrypter
+--
+--      FUNCTIONS:          __init__(self, parent=none)
+--                          toBytes(self)
+--                          fromBytes(data)
+--                          __init__(self)
+--                          access_bit(self, data, num)
+--                          byteArrayToBitArray(self, bytess)
+--                          bitArrayToByteArray(self, bits)
+--                          hideSecret(self, carrierImagePath, secretFilePath, outputFilePath, password)
+--                          showSecret(self, carrierImagePath, password)
+--
+
+--
+--      DATE:               October 7, 2017
+--
+--      DESIGNERS:          Anthony Smith, Thomas Yu
+--
+--      PROGRAMMERS:        Anthony Smith, Thomas Yu
+--      NOTES:
+--      This file uses APIs needed for steganography and encryption
+---------------------------------------------------------------------------------------"""
 from PIL import Image
 from dcutils import Encryptor, Encoder
 import itertools, os, struct, sys
 from PyQt5.QtCore import QObject,pyqtSignal
 
+#Header class for file headers
 class Header:
     fileSizeBytes = 8
     fileNameBytes = 254
 
+    #Constructor
     def __init__(self, fileName, fileSize):
         self.fileName     = fileName
         self.fileSize     = fileSize
 
+    #Converts header to bytes
     def toBytes(self):
         packQuery = "hQ248s"
         something = struct.pack(packQuery,
@@ -19,6 +47,7 @@ class Header:
                            self.fileName.encode('utf-8'))
         return something
 
+    #Converts bytes to header
     @staticmethod
     def fromBytes(data):
         packQuery = "hQ248s"
@@ -27,6 +56,7 @@ class Header:
         fileName   = headerData[2].decode('utf-8').strip("\x00")
         return Header(fileName, fileSize)
 
+#StegoImage class for images
 class StegoImage(QObject):
     completeSignal = pyqtSignal()
     errorSignal = pyqtSignal(str)
@@ -34,9 +64,8 @@ class StegoImage(QObject):
         super(QObject, self).__init__()
 
 
-    """
-     * Retrieves a list of bits from a single byte
-    """
+
+    #Retrieves a list of bits from a single byte
     def access_bit(self, data, num):
         base = int(num/8)
         shift = num % 8

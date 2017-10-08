@@ -1,3 +1,23 @@
+"""---------------------------------------------------------------------------------------
+--      SOURCE FILE:        dcutils.py - image manipulation for steganograph
+--
+--      PROGRAM:            steganography encrypter
+--
+--      FUNCTIONS:          __init__(self, password=b"password", salt=b"testingasaltingg")
+--                          encryptData(self, data)
+--                          decryptData(self, data)
+--                          def encode(self, carrierData, hiddenData)
+--                          def decode(self, carrierData)
+--
+--      DATE:               October 7, 2017
+--
+--      DESIGNERS:          Anthony Smith, Thomas Yu
+--
+--      PROGRAMMERS:        Anthony Smith, Thomas Yu
+--
+--      NOTES:
+--      This file uses APIs for steganography and encryption
+---------------------------------------------------------------------------------------"""
 import base64, os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
@@ -5,6 +25,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class Encryptor:
+    #constructor
     def __init__(self, password=b"password", salt=b"testingasaltingg"):
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -16,16 +37,18 @@ class Encryptor:
         key = base64.urlsafe_b64encode(kdf.derive(password))
         self.fernet = Fernet(key)
 
+    #encrypt data
     def encryptData(self, data):
         token = self.fernet.encrypt(data)
         return token
 
+    #decrypt data
     def decryptData(self, data):
         try:
             token = self.fernet.decrypt(data)
         except:
             print("error")
-            
+
         return token
 
 class Encoder:

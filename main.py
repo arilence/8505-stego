@@ -1,3 +1,34 @@
+"""---------------------------------------------------------------------------------------
+--      SOURCE FILE:        main.py - main entry point of the application
+--
+--      PROGRAM:            steganography encrypter
+--
+--      FUNCTIONS:          __init__(self, parent=none)
+--                          exitButtonPressed(self)
+--                          carrierButtonPressed(self)
+--                          SecretButtonPressed(self)
+--                          encodeFileButtonPressed(self)
+--                          encodeButtonPressed(self)
+--                          decodeButtonPressed(self)
+--                          showDialog(self, message)
+--                          showError(self, errorMessage)
+--                          showThumbnail(self, file, label)
+--                          signalReceived(self)
+--                          errorSignal(self)
+--                          getPassword(self)
+--
+--
+--      DATE:               October 7, 2017
+--
+--      DESIGNERS:          Anthony Smith, Thomas Yu
+--
+--      PROGRAMMERS:        Anthony Smith, Thomas Yu
+--
+--      NOTES:
+--      This program is the main entry point for a steganography and encryption program
+--      that is able to hide and decrypt a secret file in a bmp/png image.
+---------------------------------------------------------------------------------------"""
+
 import os, struct, sys
 from PIL import Image
 from PIL.ImageQt import ImageQt
@@ -8,10 +39,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
 from ui.mainwindow import Ui_MainWindow
 
-
-
+#UI Class
 class View(QMainWindow, Ui_MainWindow):
 
+    #Constructor
     def __init__(self, parent=None):
         super(View, self).__init__(parent)
         self.stego = StegoImage()
@@ -24,8 +55,12 @@ class View(QMainWindow, Ui_MainWindow):
         self.decodeButton.clicked.connect(self.decodeButtonPressed)
         self.stego.completeSignal.connect(self.signalReceived)
         self.stego.errorSignal.connect(self.errorSignal)
+
+    #Exit button
     def exitButtonPressed(self):
         sys.exit(0)
+
+    #Select carrier file button
     def carrierButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -34,6 +69,7 @@ class View(QMainWindow, Ui_MainWindow):
             self.carrierEdit.setText(file)
             self.showThumbnail(file, self.carrierImage)
 
+    #Select secret file button
     def secretButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -41,6 +77,7 @@ class View(QMainWindow, Ui_MainWindow):
         if file:
             self.secretEdit.setText(file)
 
+    #Select encoded file button
     def encodeFileButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -49,6 +86,7 @@ class View(QMainWindow, Ui_MainWindow):
             self.encodedEdit.setText(file)
             self.showThumbnail(file, self.encodedImage)
 
+    #Encode button
     def encodeButtonPressed(self):
         carrierFilePath = self.carrierEdit.text()
         secretFilePath = self.secretEdit.text()
@@ -78,6 +116,7 @@ class View(QMainWindow, Ui_MainWindow):
         else:
             self.showError("Please select a carrier and secret file")
 
+    #Decode button
     def decodeButtonPressed(self):
         encodedFilePath = self.encodedEdit.text()
         encodedFileName = os.path.basename(encodedFilePath)
@@ -91,6 +130,7 @@ class View(QMainWindow, Ui_MainWindow):
         else:
             self.showError("Please select an encoded file")
 
+    #Show and create dialog box
     def showDialog(self, message):
        msg = QMessageBox()
        msg.setIcon(QMessageBox.Information)
@@ -101,6 +141,7 @@ class View(QMainWindow, Ui_MainWindow):
 
        msg.exec_()
 
+    #Show error dialog box
     def showError(self, errorMessage):
        msg = QMessageBox()
        msg.setIcon(QMessageBox.Warning)
@@ -112,6 +153,7 @@ class View(QMainWindow, Ui_MainWindow):
 
        msg.exec_()
 
+    #Show thumbnail image
     def showThumbnail(self, file, label):
         thumb = Image.open(file)
         thumb = thumb.convert("RGBA")
@@ -120,11 +162,15 @@ class View(QMainWindow, Ui_MainWindow):
         qim = ImageQt(thumb)
         label.setPixmap(QPixmap.fromImage(qim))
 
+    #Task complete signal
     def signalReceived(self):
         self.showDialog("Task Complete")
 
+    #Error signal
     def errorSignal(self, msg):
         self.showError(msg)
+
+    #Get password dialog
     def getPassword(self):
         text, okPressed = QInputDialog.getText(self, "Get text","Enter Password:", QLineEdit.Normal, "")
         if okPressed and text != '':
