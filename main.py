@@ -29,7 +29,7 @@ class View(QMainWindow, Ui_MainWindow):
     def carrierButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
+        file, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","png files (*.png);;bmp files (*.bmp)", options=options)
         if file:
             self.carrierEdit.setText(file)
             self.showThumbnail(file, self.carrierImage)
