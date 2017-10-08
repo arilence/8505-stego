@@ -67,7 +67,7 @@ class View(QMainWindow, Ui_MainWindow):
             print(secretFileName)
             print(carrierFileName)
 
-            if not ((secretFileName.endswith('.bmp') or secretFileName.endswith('.png')) and (carrierFileName.endswith('.bmp') or carrierFileName.endswith('png'))):
+            if not (carrierFileName.endswith('.bmp') or carrierFileName.endswith('png')):
                 self.showError("unsupported file type")
                 return
 
